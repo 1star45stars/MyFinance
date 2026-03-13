@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="MyFinance"/>
+<title>MyFinance</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --cream:#faf6f0;
+  --warm:#f5ede0;
+  --warm2:#ede0ce;
+  --ink:#1a1510;
+  --ink2:#3d3228;
+  --ink3:#7a6a58;
+  --ink4:#b09e8c;
+  --ink5:#d4c4b0;
+  --gold:#c9973a;
+  --gold2:#e8c06a;
+  --gold-pale:#fdf3dc;
+  --gold-dim:rgba(201,151,58,0.12);
+  --green:#2d7d5a;
+  --green-bg:#edf7f2;
+  --green-dim:rgba(45,125,90,0.1);
+  --red:#c0392b;
+  --red-bg:#fdf0ee;
+  --red-dim:rgba(192,57,43,0.1);
+  --amber:#d4720a;
+  --amber-bg:#fff4e6;
+  --white:#ffffff;
+  --shadow:0 4px 20px rgba(100,70,30,0.10);
+  --shadow-lg:0 12px 48px rgba(100,70,30,0.18);
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--cream);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:15px;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.6;}
+
+/* SCROLL */
+.app-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px;position:relative;z-index:1;}
+.app-scroll::-webkit-scrollbar{width:0;}
+
+/* HEADER */
+.header{background:var(--ink);padding:18px 20px 0;flex-shrink:0;position:relative;z-index:10;}
+.header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.app-name{font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--white);font-style:italic;letter-spacing:0.2px;}
+.app-name strong{font-weight:600;color:var(--gold2);font-style:normal;}
+.month-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--ink4);font-weight:500;}
+.save-chip{font-size:11px;color:var(--green);background:rgba(45,125,90,0.2);border:1px solid rgba(45,125,90,0.3);border-radius:20px;padding:4px 12px;opacity:0;transition:opacity 0.3s;}
+.save-chip.show{opacity:1;}
+
+/* TABS */
+.tabs{display:flex;gap:2px;}
+.tab{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:rgba(255,255,255,0.35);background:transparent;border:none;border-bottom:2px solid transparent;padding:10px 18px 12px;cursor:pointer;letter-spacing:0.3px;transition:all 0.2s;}
+.tab:hover{color:rgba(255,255,255,0.6);}
+.tab.active{color:var(--gold2);border-bottom-color:var(--gold);}
+
+/* BALANCE CARD */
+.balance-card{background:linear-gradient(135deg,var(--ink) 0%,#2d2218 100%);border-radius:0 0 28px 28px;padding:24px 24px 28px;position:relative;overflow:hidden;box-shadow:var(--shadow-lg);margin-bottom:24px;}
+.balance-card::before{content:'';position:absolute;right:-50px;top:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(201,151,58,0.2) 0%,transparent 70%);pointer-events:none;}
+.bal-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;}
+.bal-amount{font-family:'Playfair Display',serif;font-size:44px;font-weight:600;color:var(--white);letter-spacing:-1px;line-height:1;margin-bottom:4px;transition:color 0.3s;}
+.bal-amount.warning{color:var(--gold2);}
+.bal-amount.danger{color:#ff8fa3;}
+.bal-sub{font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:20px;}
+.bal-sub span{color:var(--gold2);}
+.bal-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.bal-stat{background:rgba(255,255,255,0.06);border-radius:14px;padding:12px 14px;border:1px solid rgba(255,255,255,0.06);}
+.bal-stat-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px;}
+.bal-stat-val{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;}
+.bal-stat-val.spent{color:#ff8fa3;}
+.bal-stat-val.count{color:var(--gold2);}
+.set-balance-btn{display:inline-flex;align-items:center;gap:6px;background:var(--gold-dim);border:1px solid rgba(201,151,58,0.35);color:var(--gold2);border-radius:10px;padding:9px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;}
+.set-balance-btn:hover{background:rgba(201,151,58,0.2);}
+
+/* LOG BTN */
+.log-btn{margin:0 20px 24px;background:var(--ink);border:none;border-radius:18px;padding:18px 24px;width:calc(100% - 40px);font-family:'Playfair Display',serif;font-size:17px;font-weight:600;font-style:italic;color:var(--gold2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:var(--shadow-lg);transition:all 0.2s;position:relative;overflow:hidden;}
+.log-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(201,151,58,0.08));pointer-events:none;}
+.log-btn:hover{transform:translateY(-1px);box-shadow:0 16px 48px rgba(26,21,16,0.25);}
+.log-btn:active{transform:translateY(0);}
+.log-btn-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ink);flex-shrink:0;}
+
+/* SECTION LABEL */
+.section-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--ink4);padding:0 20px;margin-bottom:12px;}
+
+/* CATEGORY CARDS */
+.categories-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px;margin-bottom:24px;}
+.cat-card{background:var(--white);border:1px solid rgba(201,151,58,0.12);border-radius:18px;padding:16px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(100,70,30,0.06);}
+.cat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.cat-card.at-limit{border-color:rgba(192,57,43,0.3);background:var(--red-bg);}
+.cat-card.near-limit{border-color:rgba(212,114,10,0.3);background:var(--amber-bg);}
+.cat-icon{font-size:24px;margin-bottom:10px;display:block;}
+.cat-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;line-height:1.3;}
+.cat-budget-text{font-size:11px;color:var(--ink4);margin-bottom:10px;}
+.cat-remaining{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;margin-bottom:8px;line-height:1.2;}
+.cat-remaining.ok{color:var(--green);}
+.cat-remaining.warn{color:var(--amber);}
+.cat-remaining.over{color:var(--red);}
+.cat-bar-wrap{height:3px;background:var(--warm);border-radius:99px;overflow:hidden;}
+.cat-bar{height:100%;border-radius:99px;transition:width 0.5s ease;}
+.cat-limit-badge{position:absolute;top:10px;right:10px;background:var(--red-dim);border:1px solid rgba(192,57,43,0.25);color:var(--red);font-size:9px;font-weight:700;letter-spacing:0.5px;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
+
+/* TRANSACTIONS */
+.tx-list{padding:0 20px;}
+.tx-item{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid rgba(201,151,58,0.1);border-radius:16px;padding:14px 16px;margin-bottom:10px;animation:fadeUp 0.3s ease;box-shadow:0 2px 8px rgba(100,70,30,0.05);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.tx-icon-wrap{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.tx-details{flex:1;min-width:0;}
+.tx-name{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-meta{font-size:11px;color:var(--ink4);margin-top:2px;}
+.tx-amount{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--red);flex-shrink:0;}
+.tx-delete{width:28px;height:28px;border-radius:8px;background:transparent;border:1px solid var(--warm2);color:var(--ink4);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.tx-delete:hover{background:var(--red-bg);border-color:rgba(192,57,43,0.3);color:var(--red);}
+
+/* BOTTOM NAV */
+.bottom-nav{background:var(--white);border-top:1px solid var(--warm2);display:flex;padding:10px 20px 22px;gap:8px;flex-shrink:0;position:relative;z-index:5;box-shadow:0 -4px 20px rgba(100,70,30,0.08);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:transparent;border:none;cursor:pointer;padding:8px 4px;border-radius:12px;transition:all 0.2s;}
+.nav-btn.active{background:var(--gold-pale);}
+.nav-icon{font-size:20px;}
+.nav-label{font-size:10px;color:var(--ink4);font-weight:500;letter-spacing:0.3px;}
+.nav-btn.active .nav-label{color:var(--gold);}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,21,16,0.6);z-index:100;display:flex;align-items:flex-end;backdrop-filter:blur(6px);animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{background:var(--cream);border:1px solid var(--warm2);border-radius:28px 28px 0 0;padding:24px 24px 44px;width:100%;max-height:88vh;overflow-y:auto;animation:slideUp 0.3s cubic-bezier(.34,1.56,.64,1);}
+.modal::-webkit-scrollbar{width:0;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-handle{width:40px;height:4px;background:var(--warm2);border-radius:99px;margin:0 auto 22px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--ink4);margin-bottom:22px;}
+
+/* FORM */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink4);margin-bottom:8px;display:block;font-weight:500;}
+.form-input{width:100%;background:var(--warm);border:1.5px solid transparent;border-radius:14px;padding:13px 16px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--ink);outline:none;transition:all 0.2s;appearance:none;}
+.form-input:focus{border-color:var(--gold);background:var(--white);}
+.form-input::placeholder{color:var(--ink5);}
+.amount-wrap{position:relative;}
+.amount-symbol{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);font-style:italic;font-weight:600;}
+.amount-wrap .form-input{padding-left:40px;font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--ink);}
+
+/* CAT SELECT */
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.cat-sel-btn{background:var(--warm);border:1.5px solid transparent;border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;font-size:11px;color:var(--ink3);font-weight:500;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.cat-sel-btn .csi{font-size:20px;display:block;margin-bottom:4px;}
+.cat-sel-btn.selected{background:var(--gold-pale);border-color:rgba(201,151,58,0.5);color:var(--gold);}
+
+/* WARNINGS */
+.warn-box{background:var(--red-bg);border:1px solid rgba(192,57,43,0.25);border-radius:14px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--red);line-height:1.5;}
+.warn-box.caution{background:var(--amber-bg);border-color:rgba(212,114,10,0.25);color:var(--amber);}
+
+/* BUTTONS */
+.btn-primary{width:100%;background:var(--ink);border:none;border-radius:16px;padding:17px;font-family:'Playfair Display',serif;font-size:17px;font-weight:600;font-style:italic;color:var(--gold2);cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);margin-top:8px;}
+.btn-primary:hover{background:var(--ink2);}
+.btn-secondary{width:100%;background:var(--warm);border:1px solid var(--warm2);border-radius:16px;padding:15px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink3);cursor:pointer;transition:all 0.2s;margin-top:8px;}
+.btn-secondary:hover{background:var(--warm2);}
+.btn-danger{color:var(--red)!important;background:var(--red-bg)!important;border-color:rgba(192,57,43,0.2)!important;}
+
+/* MANAGE CAT */
+.manage-cat-item{background:var(--white);border:1px solid rgba(201,151,58,0.1);border-radius:16px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(100,70,30,0.05);}
+.manage-cat-icon{font-size:26px;width:46px;text-align:center;flex-shrink:0;}
+.manage-cat-info{flex:1;min-width:0;}
+.manage-cat-name{font-size:15px;font-weight:600;color:var(--ink);}
+.manage-cat-sub{font-size:12px;color:var(--ink4);margin-top:2px;}
+.edit-btn{background:var(--warm);border:1px solid var(--warm2);border-radius:10px;padding:7px 14px;font-size:12px;color:var(--ink3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.edit-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* ICON GRID */
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px;}
+.icon-btn{background:var(--warm);border:1.5px solid transparent;border-radius:10px;padding:10px;font-size:20px;cursor:pointer;text-align:center;transition:all 0.2s;}
+.icon-btn:hover{background:var(--gold-pale);border-color:rgba(201,151,58,0.4);}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px 20px;}
+.empty-icon{font-size:44px;margin-bottom:12px;}
+.empty-text{font-size:14px;color:var(--ink4);line-height:1.6;}
+
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;}
+
+/* PAGE HEADER */
+.page-header{padding:24px 20px 16px;}
+.page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--ink);}
+.page-sub{font-size:13px;color:var(--ink4);margin-top:4px;}
+
+/* SECTION DIVIDER */
+.divider{height:1px;background:var(--warm);margin:8px 20px 20px;}
+
+@media(min-width:520px){
+  body{max-width:480px;margin:0 auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <div class="app-name">My<strong>Finance</strong></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div class="save-chip" id="saveChip">✓ Saved</div>
+      <div class="month-badge" id="monthBadge"></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchPage('home',this)">Home</button>
+    <button class="tab" onclick="switchPage('categories',this)">Categories</button>
+    <button class="tab" onclick="switchPage('history',this)">History</button>
+  </div>
+</div>
+
+<!-- SCROLL AREA -->
+<div class="app-scroll" id="appScroll">
+
+  <!-- ══ HOME ══ -->
+  <div class="page active" id="page-home">
+
+    <!-- Balance -->
+    <div class="balance-card">
+      <div class="bal-label">Account Balance</div>
+      <div class="bal-amount" id="balAmount">₦0</div>
+      <div class="bal-sub">of <span id="balInitial">₦0</span> starting balance this month</div>
+      <div class="bal-stats">
+        <div class="bal-stat">
+          <div class="bal-stat-label">Total Spent</div>
+          <div class="bal-stat-val spent" id="totalSpent">₦0</div>
+        </div>
+        <div class="bal-stat">
+          <div class="bal-stat-label">Transactions</div>
+          <div class="bal-stat-val count" id="txCount">0</div>
+        </div>
+      </div>
+      <button class="set-balance-btn" onclick="openModal('setBalModal')">
+        ✏️ <span id="setBalText">Set Account Balance</span>
+      </button>
+    </div>
+
+    <!-- Log Button -->
+    <button class="log-btn" onclick="openModal('spendModal')">
+      <div class="log-btn-icon">＋</div>
+      Log a Transaction
+    </button>
+
+    <!-- Categories -->
+    <div class="section-label">Budget Categories</div>
+    <div class="categories-grid" id="categoriesGrid"></div>
+
+    <!-- Recent -->
+    <div class="section-label">Recent Transactions</div>
+    <div class="tx-list" id="txList"></div>
+    <div style="height:8px;"></div>
+
+  </div>
+
+  <!-- ══ CATEGORIES ══ -->
+  <div class="page" id="page-categories">
+    <div class="page-header">
+      <div class="page-title">Categories</div>
+      <div class="page-sub">Manage your monthly budget limits</div>
+    </div>
+    <div style="padding:0 20px 16px;">
+      <button class="btn-primary" style="margin-top:0;" onclick="openAddCat()">+ Add New Category</button>
+    </div>
+    <div class="divider"></div>
+    <div style="padding:0 20px;" id="manageCatList"></div>
+  </div>
+
+  <!-- ══ HISTORY ══ -->
+  <div class="page" id="page-history">
+    <div class="page-header">
+      <div class="page-title">History</div>
+      <div class="page-sub" id="histSub">All transactions</div>
+    </div>
+    <div class="divider"></div>
+    <div style="padding:0 20px;" id="fullTxList"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="switchPage('home',this)">
+    <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+  </button>
+  <button class="nav-btn" onclick="switchPage('categories',this)">
+    <span class="nav-icon">📂</span><span class="nav-label">Categories</span>
+  </button>
+  <button class="nav-btn" onclick="switchPage('history',this)">
+    <span class="nav-icon">📋</span><span class="nav-label">History</span>
+  </button>
+</div>
+
+<!-- ═══ SET BALANCE MODAL ═══ -->
+<div class="modal-overlay" id="setBalModal" style="display:none" onclick="closeOnBg(event,'setBalModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Account Balance</div>
+    <div class="modal-sub">Enter the current amount in your bank account</div>
+    <div class="form-group">
+      <div class="amount-wrap">
+        <span class="amount-symbol">₦</span>
+        <input class="form-input" type="number" id="balInput" placeholder="0"/>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="setBalance()">Save Balance</button>
+    <button class="btn-secondary" onclick="closeModal('setBalModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ LOG TRANSACTION MODAL ═══ -->
+<div class="modal-overlay" id="spendModal" style="display:none" onclick="closeOnBg(event,'spendModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Log Transaction</div>
+    <div class="modal-sub">Record what you're spending on</div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input class="form-input" type="text" id="txDesc" placeholder="e.g. Rent, Week 1 groceries, Fuel..."/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount</label>
+      <div class="amount-wrap">
+        <span class="amount-symbol">₦</span>
+        <input class="form-input" type="number" id="txAmount" placeholder="0" oninput="checkWarning()"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <div class="cat-grid" id="catSelectGrid"></div>
+    </div>
+    <div id="warnBox" style="display:none;margin-top:4px;"></div>
+    <button class="btn-primary" onclick="logTx()">Confirm Transaction</button>
+    <button class="btn-secondary" onclick="closeModal('spendModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ ADD/EDIT CATEGORY MODAL ═══ -->
+<div class="modal-overlay" id="catModal" style="display:none" onclick="closeOnBg(event,'catModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="catModalTitle">New Category</div>
+    <div class="modal-sub">Set a name, icon and monthly limit</div>
+    <div class="form-group">
+      <label class="form-label">Category Name</label>
+      <input class="form-input" type="text" id="catNameInput" placeholder="e.g. Groceries, Rent, DSTV..."/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Choose an Icon</label>
+      <div class="icon-grid" id="iconGrid"></div>
+      <input class="form-input" type="text" id="catIconInput" placeholder="Or type any emoji here" maxlength="2" style="text-align:center;font-size:24px;"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monthly Budget (₦) — optional</label>
+      <div class="amount-wrap">
+        <span class="amount-symbol">₦</span>
+        <input class="form-input" type="number" id="catBudgetInput" placeholder="0 = no limit"/>
+      </div>
+    </div>
+    <input type="hidden" id="editingCatId"/>
+    <button class="btn-primary" onclick="saveCat()">Save Category</button>
+    <button class="btn-secondary btn-danger" id="deleteCatBtn" style="display:none;" onclick="deleteCat()">🗑 Delete Category</button>
+    <button class="btn-secondary" onclick="closeModal('catModal')">Cancel</button>
+  </div>
+</div>
+
+<script>
+const STORE = "myfinance_v3";
+const ICONS = ["🏠","🛒","⚡","🌐","🚗","💊","🎬","👗","📱","🍽️","✈️","🎓","💰","🏦","🧾","🎁","🐾","💇","🏋️","☕","🛵","📺","🎮","💈","🧴","🐟"];
+
+const DEFAULT_CATS = [
+  {id:101, name:"Rent / House",    icon:"🏠", budget:0, spent:0},
+  {id:102, name:"Groceries",       icon:"🛒", budget:0, spent:0},
+  {id:103, name:"Electricity",     icon:"⚡", budget:0, spent:0},
+  {id:104, name:"Internet / Data", icon:"🌐", budget:0, spent:0},
+  {id:105, name:"Transport",       icon:"🚗", budget:0, spent:0},
+  {id:106, name:"Miscellaneous",   icon:"🎬", budget:0, spent:0},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let S = {
+  balance: 0,
+  initialBalance: 0,
+  categories: JSON.parse(JSON.stringify(DEFAULT_CATS)),
+  transactions: []
+};
+
+let selectedCatId = null;
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE);
+    if(raw){
+      const saved = JSON.parse(raw);
+      // deduplicate categories by id
+      if(saved.categories){
+        const seen = new Set();
+        saved.categories = saved.categories.filter(c=>{
+          if(seen.has(c.id)) return false;
+          seen.add(c.id); return true;
+        });
+      }
+      S = saved;
+    }
+  }catch(e){}
+}
+
+let saveTimer;
+function persist(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){}
+    showSaved();
+  }, 300);
+}
+
+function showSaved(){
+  const c = document.getElementById("saveChip");
+  c.classList.add("show");
+  setTimeout(()=>c.classList.remove("show"), 1800);
+}
+
+// ── FORMAT ────────────────────────────────────────────────────────────────────
+function fmt(n){ n=parseFloat(n)||0; return "₦"+Math.abs(n).toLocaleString("en-NG",{maximumFractionDigits:0}); }
+function fmtDate(ts){ return new Date(ts).toLocaleDateString("en-NG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); }
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function setBalance(){
+  const v = parseFloat(document.getElementById("balInput").value)||0;
+  if(!v){ alert("Please enter a valid amount."); return; }
+  S.balance = v;
+  S.initialBalance = v;
+  S.transactions = [];
+  S.categories.forEach(c=>c.spent=0);
+  persist();
+  closeModal("setBalModal");
+  renderAll();
+}
+
+function logTx(){
+  const desc = document.getElementById("txDesc").value.trim();
+  const amount = parseFloat(document.getElementById("txAmount").value)||0;
+  if(!desc){ alert("Please enter a description."); return; }
+  if(amount<=0){ alert("Please enter a valid amount."); return; }
+  if(!selectedCatId){ alert("Please select a category."); return; }
+  if(amount > S.balance){
+    if(!confirm(`This exceeds your balance of ${fmt(S.balance)}. Continue anyway?`)) return;
+  }
+  const cat = S.categories.find(c=>c.id===selectedCatId);
+  S.balance -= amount;
+  if(cat) cat.spent += amount;
+  S.transactions.unshift({id:Date.now(), desc, amount, catId:selectedCatId, catName:cat?cat.name:"Other", catIcon:cat?cat.icon:"💳", ts:Date.now()});
+  persist();
+  closeModal("spendModal");
+  renderAll();
+  document.getElementById("appScroll").scrollTo({top:0,behavior:"smooth"});
+}
+
+function deleteTx(id){
+  const tx = S.transactions.find(t=>t.id===id);
+  if(!tx||!confirm("Remove this transaction and restore the amount?")) return;
+  S.balance += tx.amount;
+  const cat = S.categories.find(c=>c.id===tx.catId);
+  if(cat) cat.spent = Math.max(0, cat.spent-tx.amount);
+  S.transactions = S.transactions.filter(t=>t.id!==id);
+  persist();
+  renderAll();
+}
+
+function saveCat(){
+  const name = document.getElementById("catNameInput").value.trim();
+  const icon = document.getElementById("catIconInput").value.trim()||"📦";
+  const budget = parseFloat(document.getElementById("catBudgetInput").value)||0;
+  if(!name){ alert("Please enter a name."); return; }
+  const eid = parseInt(document.getElementById("editingCatId").value)||0;
+  if(eid){
+    const cat = S.categories.find(c=>c.id===eid);
+    if(cat){ cat.name=name; cat.icon=icon; cat.budget=budget; }
+  } else {
+    S.categories.push({id:Date.now(), name, icon, budget, spent:0});
+  }
+  persist();
+  closeModal("catModal");
+  renderAll();
+}
+
+function deleteCat(){
+  const eid = parseInt(document.getElementById("editingCatId").value)||0;
+  if(!eid||!confirm("Delete this category?")) return;
+  S.categories = S.categories.filter(c=>c.id!==eid);
+  persist();
+  closeModal("catModal");
+  renderAll();
+}
+
+// ── WARNING ───────────────────────────────────────────────────────────────────
+function checkWarning(){
+  const amount = parseFloat(document.getElementById("txAmount").value)||0;
+  const wb = document.getElementById("warnBox");
+  if(!amount||!selectedCatId){ wb.style.display="none"; return; }
+  const cat = S.categories.find(c=>c.id===selectedCatId);
+  if(!cat||!cat.budget){ wb.style.display="none"; return; }
+  const rem = cat.budget - cat.spent;
+  const after = rem - amount;
+  if(after < 0){
+    wb.innerHTML=`<div class="warn-box">⚠️ <strong>Over budget!</strong> You only have ${fmt(rem)} left in ${cat.name}. You'll go ${fmt(Math.abs(after))} over your limit.</div>`;
+    wb.style.display="block";
+  } else if(cat.budget && after < cat.budget*0.2){
+    wb.innerHTML=`<div class="warn-box caution">💛 Almost at your ${cat.name} limit — only ${fmt(after)} will remain after this.</div>`;
+    wb.style.display="block";
+  } else {
+    wb.style.display="none";
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderAll(){
+  renderBalance();
+  renderCatGrid();
+  renderTxList();
+  renderManageCats();
+  renderFullHistory();
+}
+
+function renderBalance(){
+  const pct = S.initialBalance ? S.balance/S.initialBalance : 1;
+  const el = document.getElementById("balAmount");
+  el.textContent = fmt(S.balance);
+  el.className = "bal-amount"+(pct<0.2?" danger":pct<0.4?" warning":"");
+  document.getElementById("balInitial").textContent = fmt(S.initialBalance);
+  document.getElementById("totalSpent").textContent = fmt(S.initialBalance-S.balance);
+  document.getElementById("txCount").textContent = S.transactions.length;
+  document.getElementById("setBalText").textContent = S.initialBalance?"Update Balance":"Set Account Balance";
+}
+
+function renderCatGrid(){
+  const g = document.getElementById("categoriesGrid");
+  g.innerHTML="";
+  S.categories.forEach(cat=>{
+    const rem = cat.budget - cat.spent;
+    const pct = cat.budget ? Math.min(cat.spent/cat.budget*100,100) : 0;
+    const atLimit = cat.budget>0 && cat.spent >= cat.budget;
+    const nearLimit = cat.budget>0 && rem/cat.budget<0.2 && !atLimit;
+    const barCol = atLimit?"var(--red)":nearLimit?"var(--amber)":"var(--green)";
+    const remClass = atLimit?"over":nearLimit?"warn":"ok";
+    const remTxt = cat.budget>0 ? (atLimit?"LIMIT REACHED":fmt(rem)+" left") : "No limit set";
+    const d=document.createElement("div");
+    d.className="cat-card"+(atLimit?" at-limit":nearLimit?" near-limit":"");
+    d.onclick=()=>openSpendOnCat(cat.id);
+    d.innerHTML=`
+      ${atLimit?'<div class="cat-limit-badge">Limit!</div>':""}
+      <span class="cat-icon">${cat.icon}</span>
+      <div class="cat-name">${cat.name}</div>
+      <div class="cat-budget-text">${cat.budget>0?"Budget: "+fmt(cat.budget):"Tap to spend"}</div>
+      <div class="cat-remaining ${remClass}">${remTxt}</div>
+      <div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%;background:${barCol}"></div></div>
+    `;
+    g.appendChild(d);
+  });
+}
+
+function renderTxList(){
+  const el = document.getElementById("txList");
+  const recent = S.transactions.slice(0,5);
+  if(!recent.length){ el.innerHTML=`<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-text">No transactions yet.<br/>Tap "Log a Transaction" to begin.</div></div>`; return; }
+  el.innerHTML="";
+  recent.forEach(tx=>el.appendChild(makeTxEl(tx)));
+}
+
+function renderFullHistory(){
+  const el = document.getElementById("fullTxList");
+  document.getElementById("histSub").textContent = S.transactions.length+" transaction"+(S.transactions.length!==1?"s":"");
+  if(!S.transactions.length){ el.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No transactions yet.</div></div>`; return; }
+  el.innerHTML="";
+  S.transactions.forEach(tx=>el.appendChild(makeTxEl(tx)));
+}
+
+function makeTxEl(tx){
+  const palette=["rgba(201,151,58,0.15)","rgba(45,125,90,0.12)","rgba(76,201,240,0.12)","rgba(165,107,188,0.12)","rgba(240,130,41,0.12)","rgba(192,57,43,0.1)"];
+  const bg = palette[tx.catId % palette.length];
+  const d=document.createElement("div");
+  d.className="tx-item";
+  d.innerHTML=`
+    <div class="tx-icon-wrap" style="background:${bg}">${tx.catIcon}</div>
+    <div class="tx-details">
+      <div class="tx-name">${tx.desc}</div>
+      <div class="tx-meta">${tx.catName} · ${fmtDate(tx.ts)}</div>
+    </div>
+    <div class="tx-amount">−${fmt(tx.amount)}</div>
+    <button class="tx-delete" onclick="event.stopPropagation();deleteTx(${tx.id})">×</button>
+  `;
+  return d;
+}
+
+function renderManageCats(){
+  const el=document.getElementById("manageCatList");
+  el.innerHTML="";
+  S.categories.forEach(cat=>{
+    const d=document.createElement("div");
+    d.className="manage-cat-item";
+    d.innerHTML=`
+      <div class="manage-cat-icon">${cat.icon}</div>
+      <div class="manage-cat-info">
+        <div class="manage-cat-name">${cat.name}</div>
+        <div class="manage-cat-sub">${cat.budget>0?"Budget: "+fmt(cat.budget)+" · Spent: "+fmt(cat.spent):"No budget limit set"}</div>
+      </div>
+      <button class="edit-btn" onclick="openEditCat(${cat.id})">Edit</button>
+    `;
+    el.appendChild(d);
+  });
+}
+
+// ── MODALS ────────────────────────────────────────────────────────────────────
+function openModal(id){
+  document.getElementById(id).style.display="flex";
+}
+function closeModal(id){
+  document.getElementById(id).style.display="none";
+}
+function closeOnBg(e,id){
+  if(e.target===document.getElementById(id)) closeModal(id);
+}
+
+function openAddCat(){
+  document.getElementById("catModalTitle").textContent="New Category";
+  document.getElementById("catNameInput").value="";
+  document.getElementById("catIconInput").value="";
+  document.getElementById("catBudgetInput").value="";
+  document.getElementById("editingCatId").value="";
+  document.getElementById("deleteCatBtn").style.display="none";
+  buildIconGrid();
+  openModal("catModal");
+}
+
+function openEditCat(id){
+  const cat=S.categories.find(c=>c.id===id);
+  if(!cat) return;
+  document.getElementById("catModalTitle").textContent="Edit Category";
+  document.getElementById("catNameInput").value=cat.name;
+  document.getElementById("catIconInput").value=cat.icon;
+  document.getElementById("catBudgetInput").value=cat.budget||"";
+  document.getElementById("editingCatId").value=id;
+  document.getElementById("deleteCatBtn").style.display="block";
+  buildIconGrid();
+  openModal("catModal");
+}
+
+function openSpendOnCat(catId){
+  selectedCatId=null;
+  document.getElementById("txDesc").value="";
+  document.getElementById("txAmount").value="";
+  document.getElementById("warnBox").style.display="none";
+  buildCatGrid();
+  openModal("spendModal");
+  setTimeout(()=>selectCat(catId),80);
+}
+
+function selectCat(id){
+  selectedCatId=id;
+  document.querySelectorAll(".cat-sel-btn").forEach(b=>b.classList.toggle("selected",parseInt(b.dataset.id)===id));
+  checkWarning();
+}
+
+function buildCatGrid(){
+  const g=document.getElementById("catSelectGrid");
+  g.innerHTML="";
+  S.categories.forEach(cat=>{
+    const b=document.createElement("div");
+    b.className="cat-sel-btn";
+    b.dataset.id=cat.id;
+    b.innerHTML=`<span class="csi">${cat.icon}</span>${cat.name.split(" ")[0]}`;
+    b.onclick=()=>selectCat(cat.id);
+    g.appendChild(b);
+  });
+}
+
+function buildIconGrid(){
+  const g=document.getElementById("iconGrid");
+  g.innerHTML="";
+  ICONS.forEach(icon=>{
+    const b=document.createElement("button");
+    b.className="icon-btn";
+    b.textContent=icon;
+    b.onclick=()=>{ document.getElementById("catIconInput").value=icon; };
+    g.appendChild(b);
+  });
+}
+
+// ── PAGE NAV ──────────────────────────────────────────────────────────────────
+function switchPage(name, btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-btn, .tab").forEach(b=>b.classList.remove("active"));
+
+  // activate both the tab and the nav btn that match
+  document.querySelectorAll(".tab").forEach(b=>{ if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+name+"'")) b.classList.add("active"); });
+  document.querySelectorAll(".nav-btn").forEach(b=>{ if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+name+"'")) b.classList.add("active"); });
+
+  document.getElementById("page-"+name).classList.add("active");
+  document.getElementById("appScroll").scrollTo({top:0});
+  if(name==="history") renderFullHistory();
+  if(name==="categories") renderManageCats();
+}
+
+// ── MONTH LABEL ───────────────────────────────────────────────────────────────
+function setMonth(){
+  const now=new Date();
+  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  document.getElementById("monthBadge").textContent=months[now.getMonth()]+" "+now.getFullYear();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+load();
+setMonth();
+
+// Open spend modal: reset properly
+document.getElementById("spendModal").addEventListener("click", e=>{ if(e.target.id==="spendModal") closeModal("spendModal"); });
+document.querySelector(".log-btn").onclick = ()=>{
+  selectedCatId=null;
+  document.getElementById("txDesc").value="";
+  document.getElementById("txAmount").value="";
+  document.getElementById("warnBox").style.display="none";
+  buildCatGrid();
+  openModal("spendModal");
+};
+document.querySelector("[onclick=\"openModal('setBalModal')\"]").onclick=()=>{
+  document.getElementById("balInput").value=S.initialBalance||"";
+  openModal("setBalModal");
+};
+
+renderAll();
+</script>
+</body>
+</html>
